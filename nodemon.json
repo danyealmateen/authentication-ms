@@ -1,0 +1,8 @@
+{
+    "ext": "ts js json",
+    "watch": [
+        "src/**/*.ts",
+        "src/**/*.json"
+    ],
+    "exec": "ts-node src/index.ts"
+}

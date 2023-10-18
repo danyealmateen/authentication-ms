@@ -1,18 +1,28 @@
-import * as compression from 'compression';
-import * as cors from 'cors';
-import helmet from 'helmet';
-import * as express from 'express';
-
-export default function createServer({ app, routes, logger }) {
+export default function createServer({
+  app,
+  logger,
+  json,
+  urlencoded,
+  cors,
+  compression,
+  helmet,
+}) {
   return Object.freeze({ server });
 
-  function server({ hostname, port }) {
+  function server({ hostname, port, routes }) {
     app.use(helmet());
     app.options('*', cors({ credentials: true, origin: true }));
     app.use(cors());
     app.use(compression());
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
+    app.use(json());
+    app.use(urlencoded({ extended: true }));
+
+    app.use((req, res, next) => {
+      logger.info(
+        `[EXPRESS] Connection recieved: ${req.ip}:${req.path}:${req.method}`
+      );
+      next();
+    });
 
     for (let route of routes) {
       app[route.method](`${route.path}`, route.component);

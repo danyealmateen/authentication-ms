@@ -1,15 +1,21 @@
 import * as express from 'express';
+import * as bodyParser from 'body-parser'
+import * as compression from 'compression'
+import * as cors from 'cors'
+import * as helmet from 'helmet'
 import createServer from './libs/express';
 import { routes } from '../../component/controller';
 import { logger } from '../../lib/logger';
 
-const app = express();
+const app = express()
+const json = express.json;
+const urlencoded = express.urlencoded;
 
-const server = ({ hostname, port }) =>
-  createServer({
-    app,
-    routes,
-    logger,
-  }).server({ hostname, port });
+const server = ({hostname, port}) => 
+createServer({
+  json,urlencoded,app,cors,compression, helmet,logger
+}).server({hostname, port, routes})
 
-export { server };
+export {
+  server
+}

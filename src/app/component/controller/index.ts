@@ -1,35 +1,27 @@
 import { logger } from '../../lib/logger';
 import { post } from '../use-cases';
-import { fs } from '../use-cases';
-import { path } from '../use-cases';
+import { get } from '../use-cases';
 const baseUrl = '/api/v1';
-const theRealPath =
-  'C:\\Users\\danye\\Desktop\\dev\\node\\backend\\authentication-ms\\data\\userfile.json';
 
-const user = {
-  username: 'ring',
-  password: 'ding',
-};
-
-//POST
-const postEP = async (req, res) => {
+const getEP = async (req, res) => {
   try {
-    await post({ params: user });
-    res.json({ params: user });
+    const results = await get({ params: req.params });
+    res.json({ err: 0, data: results });
   } catch (err) {
-    logger.error(err);
+    logger.info(`[EP][GET] ${req.method}: ${err.message}`);
+    res.status(403);
+    res.json({ err: 1, data: { err } });
   }
 };
 
-//GET
-const getEP = async (req, res) => {
+const postEP = async (req, res) => {
   try {
-    const filePath = path.resolve(theRealPath);
-    const userData = JSON.parse(await fs.readFile(filePath, 'utf-8'));
-    res.json(userData);
+    const results = await post({ params: req.body });
+    res.json({ err: 0, data: results });
   } catch (err) {
-    console.error('Error:', err);
-    res.status(500).send('nope');
+    logger.info(`[EP][POST] ${req.method}: ${err.message}`);
+    res.status(403);
+    res.json({ err: 1, data: { err } });
   }
 };
 

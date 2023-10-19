@@ -19,11 +19,11 @@ const post = ({ params }) =>
     logger,
   }).post({ params, filename, fileDirPath, fileDirName, filePath, errorMsgs });
 
-const get = ({ params }) =>
+const get = () =>
   createGet({
     access,
     readFile,
     logger,
-  }).get({ params, filePath, filename });
+  }).get({ filePath: config.FILE_DB_PATH, filename: config.FILE_DB_NAME });
 
 export { post, get };

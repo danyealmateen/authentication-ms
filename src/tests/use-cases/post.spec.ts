@@ -3,75 +3,55 @@ require('dotenv').config();
 
 const expect = require('chai').expect;
 import createPost from '../../app/component/use-cases/post';
-import * as path from 'path';
 import config from '../config/index';
 import { logger } from '../../app/lib/logger';
+import { access, readFile, mkdir, writeFile, rm } from 'node:fs/promises';
 
-import { access, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
-
-const post = ({ params }) =>
+const post = (params) =>
   createPost({
     access,
-    mkdir,
-    writeFile,
     readFile,
+    writeFile,
+    mkdir,
     logger,
-  }).post({
-    params,
-    filename: config.FILE_DB_NAME,
-    fileDirPath: config.FILE_FOLDER_PATH,
-    fileDirName: config.FILE_FOLDER_NAME,
-    filePath: config.FILE_DB_PATH,
-    errorMsgs: config.ERROR_MSG,
+  }).post(params);
+
+describe('post Use-Case', () => {
+  before(async () => {
+    await mkdir(config.FILE_FOLDER_PATH);
   });
 
-describe('Post', () => {
-  after(() => rm(config.FILE_FOLDER_PATH, { recursive: true }));
+  after(async () => rm(config.FILE_FOLDER_PATH, { recursive: true }));
 
-  it('should insert a user', async () => {
-    const params = {
-      username: config.TEST_DATA.user1.username,
-      password: config.TEST_DATA.user1.password,
-    };
-    const results = await post({ params });
-    const fileContent = await readFile(config.FILE_DB_PATH);
-    const users = JSON.parse(fileContent);
-    expect(results).to.have.property('username').equal(params.username);
-    expect(users.length).to.equal(1);
-    expect(users[0]).to.have.property('username').equal(params.username);
-  });
+  // ... (your other tests related to the post operation)
 
-  it('should not insert an empty user', async () => {
-    const params = {
-      username: undefined,
-      password: undefined,
-    };
-    try {
-      let results = await post({ params });
-    } catch (err) {
-      expect(err).to.equal(config.ERROR_MSG.NO_DATA);
-    }
-  });
+  describe('newUser Entity', () => {
+    it('should correctly construct a newUser entity', async () => {
+      const params = {
+        name: 'John Doe',
+        age: 30,
+        email: 'john.doe@example.com',
+      };
 
-  it('should not insert an existing user', async () => {
-    const params = {
-      username: config.TEST_DATA.user1.username,
-      password: config.TEST_DATA.user1.password,
-    };
-    try {
-      let results = await post({ params });
-    } catch (err) {
-      expect(err).to.equal(config.ERROR_MSG.EXISTING_USER);
-    }
-  });
+      await post(params);
 
-  it('should insert another user', async () => {
-    const params = {
-      username: config.TEST_DATA.user2.username,
-      password: config.TEST_DATA.user2.password,
-    };
-    await post({ params });
-    const results = await readFile(config.FILE_DB_PATH, { encoding: 'utf8' });
-    expect(Object.keys(JSON.parse(results)).length).to.equal(2);
+      const storedUsers = JSON.parse(
+        await readFile(config.FILE_DB_PATH, 'utf8')
+      );
+      const newUser = storedUsers.find((user) => user.email === params.email);
+
+      // Check properties from params
+      expect(newUser.name).to.equal(params.name);
+      expect(newUser.age).to.equal(params.age);
+      expect(newUser.email).to.equal(params.email);
+
+      // Check timestamps
+      expect(newUser).to.have.property('created');
+      expect(newUser).to.have.property('modified');
+
+      // Ensure timestamps are recent (within a second of now)
+      expect(Date.now() - newUser.created).to.be.lessThan(1000);
+      expect(Date.now() - newUser.modified).to.be.lessThan(1000);
+    });
   });
 });

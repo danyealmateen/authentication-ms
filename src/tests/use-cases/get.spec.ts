@@ -3,34 +3,43 @@ require('dotenv').config();
 
 const expect = require('chai').expect;
 import createGet from '../../app/component/use-cases/get';
-import * as path from 'path';
 import config from '../config/index';
 import { logger } from '../../app/lib/logger';
 import { access, readFile, mkdir, writeFile, rm } from 'node:fs/promises';
 
-const get = (params) =>
-  createGet({
-    access,
-    readFile,
-    logger,
-  }).get({
-    params,
-    filePath: config.FILE_DB_PATH,
-    filename: config.FILE_DB_NAME,
-  });
+describe('get use-case', () => {
+  let users;
 
-describe('get', () => {
+  // Setup - Kör detta innan testerna
   before(async () => {
+    // Förbered testdata
     const usersObj = config.TEST_DATA;
-    const users = [usersObj.user1, usersObj.user2];
+    users = [usersObj.user1, usersObj.user2];
+
     await mkdir(config.FILE_FOLDER_PATH);
     await writeFile(config.FILE_DB_PATH, JSON.stringify(users));
   });
 
-  after(async () => rm(config.FILE_FOLDER_PATH, { recursive: true }));
+  // Teardown - Kör detta efter testerna
+  after(async () => {
+    await rm(config.FILE_FOLDER_PATH, { recursive: true });
+  });
 
-  it('should return a list of users', async () => {
-    const results = await get({ params: undefined });
-    expect(results.length).to.equal(2);
+  // Testfallet
+  it('should return a list of users with the correct number of users', async () => {
+    const getFunction = createGet({
+      access,
+      readFile,
+      logger,
+    }).get;
+
+    const results = await getFunction({
+      filePath: config.FILE_DB_PATH,
+      filename: config.FILE_DB_NAME,
+    });
+
+    expect(results).to.be.an('array');
+    expect(results.length).to.equal(2); // Förväntar oss 2 användare
+    expect(results).to.deep.equal(users); // Kontrollerar att returnerade användare matchar testdata
   });
 });

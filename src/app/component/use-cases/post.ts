@@ -1,3 +1,6 @@
+import makeOutputObject from '../entities/make-output-object';
+const outputObject = makeOutputObject();
+
 export default function createPost({
   access,
   mkdir,
@@ -35,13 +38,18 @@ export default function createPost({
       if (existingUser.length) throw new Error(errorMsgs.EXISTING_USER);
       logger.info(`[USE-CASE][POST] Validating params - DONE!`);
 
-      logger.info(`[USE-CASE][POST] Writing to file ${filename} - START!`);
-      users.push(params);
+      const newUser = {
+        ...params,
+        created: Date.now(),
+        modified: Date.now(),
+      };
+
+      users.push(newUser);
       await writeFile(filePath, JSON.stringify(users));
       logger.info(`[USE-CASE][POST] Writing to file ${filename} - DONE!`);
 
       logger.info(`[USE-CASE][POST] Inserting user to ${filename} DONE!`);
-      return params;
+      return outputObject.transformData(newUser);
     } catch (e) {
       if (
         e.message === errorMsgs.NO_DATA ||
@@ -61,14 +69,18 @@ export default function createPost({
       logger.info(
         `[USE-CASE][POST] Creating and writing to file ${filename} - START!`
       );
-      await writeFile(filePath, JSON.stringify([params]));
+      const initialUser = {
+        ...params,
+        created: Date.now(),
+        modified: Date.now(),
+      };
+      await writeFile(filePath, JSON.stringify([initialUser]));
       logger.info(
         `[USE-CASE][POST] Creating and writing to file ${filename} - DONE!`
       );
 
       logger.info(`[USE-CASE][POST] Inserting user to ${filename} - DONE!`);
-
-      return params;
+      return outputObject.transformData(initialUser);
     }
   }
 }

@@ -11,4 +11,4 @@ const md5 = (text) =>
 const makeInputObj = ({ params }) =>
   makeInputObjFactory({ md5, sanitize }).inputObj({ params, errorMsgs });
 
-export { makeInputObj };
+export { makeInputObj, md5 };

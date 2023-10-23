@@ -1,7 +1,6 @@
 import { logger } from '../../lib/logger';
 import { post } from '../use-cases';
 import { get } from '../use-cases';
-import config from '../../config';
 const baseUrl = '/api/v1';
 
 const getEP = async (req, res) => {

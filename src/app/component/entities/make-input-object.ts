@@ -1,6 +1,4 @@
 export default function makeInputObjectFactory({ md5, sanitize }) {
-  let localErrorMsgs = {};
-
   function inputObj({ params, errorMsgs }) {
     const {
       username,
@@ -53,14 +51,21 @@ export default function makeInputObjectFactory({ md5, sanitize }) {
     return;
   }
 
-  // validerar strängen: ska vara större än 4 karaktärer men mindre än 25 och får bara vara små bokstäver och siffror
-  function strValidator(str: any) {
-    return (
+  function strValidator(str: any): boolean {
+    console.log(str);
+    const isValid =
       str.length > 4 &&
       str.length < 25 &&
-      str.match(/^[a-z0-9]+$/) && // Endast små bokstäver och siffror för hela strängen
-      str.split('')[0].match(/[a-z]/) // Startar med en liten bokstav
-    );
+      /^[a-z0-9]+$/i.test(str) &&
+      /^[a-z]/i.test(str[0]);
+
+    if (isValid) {
+      console.log(`[VALIDATION SUCCESS] The string "${str}" is valid.`);
+      // throw new Error(`[VALIDATION FAILURE] The string "${str}" is not valid.`);
+    } else {
+      console.log(`[VALIDATION FAILURE] The string "${str}" is not valid.`);
+    }
+    return isValid;
   }
 
   return Object.freeze({ inputObj });
